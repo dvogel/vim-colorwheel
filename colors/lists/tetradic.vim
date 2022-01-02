@@ -13,7 +13,7 @@ function! s:DivMod(dividend, divisor)
 	return [l:a, l:b]
 endfunction
 
-function! HexRGB_to_HSL(hex)
+function! s:HexRGB_to_HSL(hex)
 	let l:r = str2nr(a:hex[1:2], 16)
 	let l:g = str2nr(a:hex[3:4], 16)
 	let l:b = str2nr(a:hex[5:6], 16)
@@ -51,7 +51,7 @@ function! HexRGB_to_HSL(hex)
 	return [l:hue, l:saturation, l:lightness]
 endfunction
 
-function! HSL_to_RGB(hsl)
+function! s:HSL_to_RGB(hsl)
 	let l:C = (1 - abs(2 * a:hsl[s:LIT] - 1)) * a:hsl[s:SAT]
 	let l:h1 = s:DivMod(a:hsl[s:HUE] / 60.0, 2)[1]
 	let l:X = l:C * (1.0 - abs(l:h1 - 1.0))
@@ -92,62 +92,62 @@ function! HSL_to_RGB(hsl)
 	return [l:r, l:g, l:b]
 endfunction
 
-function! HSL_to_HexRGB(hsl)
-	let l:rgb = HSL_to_RGB(a:hsl)
+function! s:HSL_to_HexRGB(hsl)
+	let l:rgb = s:HSL_to_RGB(a:hsl)
 	return printf("#%02x%02x%02x", float2nr(l:rgb[0]), float2nr(l:rgb[1]), float2nr(l:rgb[2]))
 endfunction
 
-function! TetradicSelfTest()
-	let l:hsl = HexRGB_to_HSL("#000000")
+function! s:TetradicSelfTest()
+	let l:hsl = s:HexRGB_to_HSL("#000000")
 	call assert_equal(l:hsl[0], 0)
 	call assert_equal(l:hsl[1], 0)
 	call assert_equal(l:hsl[2], 0)
 
-	let l:hex_rgb = HSL_to_HexRGB([0, 0, 0])
+	let l:hex_rgb = s:HSL_to_HexRGB([0, 0, 0])
 	call assert_equal(l:hex_rgb, "#000000")
 
-	let l:hsl = HexRGB_to_HSL("#FFFFFF")
+	let l:hsl = s:HexRGB_to_HSL("#FFFFFF")
 	call assert_equal(l:hsl[0], 0)
 	call assert_equal(l:hsl[1], 0)
 	call assert_equal(l:hsl[2], 100)
 
-	let l:hex_rgb = HSL_to_HexRGB([0, 0, 100])
+	let l:hex_rgb = s:HSL_to_HexRGB([0, 0, 100])
 	call assert_equal(l:hex_rgb, "#FFFFFF")
 
-	let l:hsl = HexRGB_to_HSL("#FF0000")
+	let l:hsl = s:HexRGB_to_HSL("#FF0000")
 	call assert_equal(l:hsl[0], 0)
 	call assert_equal(l:hsl[1], 100)
 	call assert_equal(l:hsl[2], 50)
 
-	let l:hex_rgb = HSL_to_HexRGB([0, 100, 50])
+	let l:hex_rgb = s:HSL_to_HexRGB([0, 100, 50])
 	call assert_equal(l:hex_rgb, "#FF0000")
 
-	let l:hsl = HexRGB_to_HSL("#BFBFBF")
+	let l:hsl = s:HexRGB_to_HSL("#BFBFBF")
 	call assert_equal(l:hsl[0], 0)
 	call assert_equal(l:hsl[1], 0)
 	call assert_equal(l:hsl[2], 75)
 
-	let l:hex_rgb = HSL_to_HexRGB([0, 0, 75])
+	let l:hex_rgb = s:HSL_to_HexRGB([0, 0, 75])
 	call assert_equal(l:hex_rgb, "#BFBFBF")
 
-	let l:hsl = HexRGB_to_HSL("#800080")
+	let l:hsl = s:HexRGB_to_HSL("#800080")
 	call assert_equal(l:hsl[0], 300)
 	call assert_equal(l:hsl[1], 100)
 	call assert_equal(l:hsl[2], 25)
 
-	let l:hex_rgb = HSL_to_HexRGB([300, 100, 25])
+	let l:hex_rgb = s:HSL_to_HexRGB([300, 100, 25])
 	call assert_equal(l:hex_rgb, "#800080")
 
-	let l:hsl = HexRGB_to_HSL("#E35C0F")
+	let l:hsl = s:HexRGB_to_HSL("#E35C0F")
 	call assert_equal(l:hsl[0], 74)
 	call assert_equal(l:hsl[1], 79)
 	call assert_equal(l:hsl[2], 53)
 
-	let l:hex_rgb = HSL_to_HexRGB([74, 79, 53])
+	let l:hex_rgb = s:HSL_to_HexRGB([74, 79, 53])
 	call assert_equal(l:hex_rgb, "#E35C0F")
 endfunction
 
-call TetradicSelfTest()
+call s:TetradicSelfTest()
 
 let s:base_hsl = g:tetradic_base
 
@@ -157,25 +157,25 @@ let s:hue_increments = [0, 35, 180, 215]
 let s:hue_vals = map(s:hue_increments, {idx, val -> abs(s:DivMod(s:base_hsl[s:HUE] + val, 360)[1]) })
 let s:saturation_vals = [0.33, 0.66, 0.82, 0.98]
 
-function! EnumerateList(lst)
+function! s:EnumerateList(lst)
 	return map(copy(a:lst), {idx, val -> [idx, val]})
 endfunction
 
-for [h_idx, hue] in EnumerateList(s:hue_vals)
+for [h_idx, hue] in s:EnumerateList(s:hue_vals)
 	for [l_name, lit] in items(s:lightness_vals)
-		for [s_idx, sat] in EnumerateList(s:saturation_vals)
+		for [s_idx, sat] in s:EnumerateList(s:saturation_vals)
 			let s:col_name = "tetradic_" . s:names[h_idx] . (s_idx + 1) . "_" . l_name
 			let s:hsl = [hue, sat, lit]
-			let v:colornames[s:col_name] = HSL_to_HexRGB(s:hsl)
+			let v:colornames[s:col_name] = s:HSL_to_HexRGB(s:hsl)
 		endfor
 	endfor
 endfor
 
 " For gray, since saturation is meaningless but we want 4 different values, we
 " pretend the saturation steps are lightness steps.
-for [l_idx, lit] in EnumerateList(s:saturation_vals)
+for [l_idx, lit] in s:EnumerateList(s:saturation_vals)
 	let s:col_name = "tetradic_gray" . (l_idx + 1)
 	let s:hsl = [0, 0, lit]
-	let v:colornames[s:col_name] = HSL_to_HexRGB(s:hsl)
+	let v:colornames[s:col_name] = s:HSL_to_HexRGB(s:hsl)
 endfor
 

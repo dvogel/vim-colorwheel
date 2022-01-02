@@ -36,9 +36,8 @@ let s:hue_names = {
 	\ }
 
 " let g:tetradic_base = [s:hue_names['orange'], 0.87, 0.53]
-" let g:tetradic_base = [21.7, 0.87, 0.53]
-let g:tetradic_base = [325.0, 0.87, 0.53]
-" let g:tetradic_base = [356, 0.87, 0.53]
+let g:tetradic_base = [21.7, 0.87, 0.53]
+" let g:tetradic_base = [325.0, 0.87, 0.53]
 
 syn clear
 
