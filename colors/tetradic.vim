@@ -1,19 +1,21 @@
-" Vim color file
-" Maintainer:	Drew Vogel <drewpvogel@gmail.com>
-" Last Change:	August 9, 2021
-" Licence:	    Public Domain
+vim9script
 
-" First remove all existing highlighting.
+# Vim color file
+# Maintainer:	Drew Vogel <drewpvogel@gmail.com>
+# Last Change:	August 9, 2021
+# Licence:	    Public Domain
+
+# First remove all existing highlighting.
 set background=dark
 hi clear
 if exists("syntax_on")
-  " syntax reset
+  # syntax reset
 endif
 
-let colors_name = "tetradic"
+var colors_name = "tetradic"
 
 if !exists("g:tetradic_base")
-	let g:tetradic_base = [0, 0.80, 0.50]
+	g:tetradic_base = [0.0, 0.80, 0.50]
 endif
 
 runtime colors/lists/tetradic.vim

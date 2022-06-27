@@ -1,181 +1,189 @@
+vim9script
 
 if !exists("g:tetradic_base")
 	finish
 endif
 
-let s:HUE = 0
-let s:SAT = 1
-let s:LIT = 2
+var HUE = 0
+var SAT = 1
+var LIT = 2
 
-function! s:DivMod(dividend, divisor)
-	let l:a = float2nr(a:dividend) / float2nr(a:divisor)
-	let l:b = (a:dividend * 1.0) - (a:divisor * 1.0 * l:a)
-	return [l:a, l:b]
-endfunction
+def DivMod(dividend: float, divisor: float): list<any>
+	var a: number = float2nr(dividend) / float2nr(divisor)
+	var b: float = (dividend * 1.0) - (divisor * 1.0 * a)
+	return [a, b]
+enddef
 
-function! s:HexRGB_to_HSL(hex)
-	let l:r = str2nr(a:hex[1:2], 16)
-	let l:g = str2nr(a:hex[3:4], 16)
-	let l:b = str2nr(a:hex[5:6], 16)
+def HexRGB_to_HSL(hex: string): list<any>
+	var r = str2nr(hex[1 : 2], 16)
+	var g = str2nr(hex[3 : 4], 16)
+	var b = str2nr(hex[5 : 6], 16)
 
-	let l:r1 = l:r / 255.0
-	let l:g1 = l:g / 255.0
-	let l:b1 = l:b / 255.0
+	var r1 = r / 255.0
+	var g1 = g / 255.0
+	var b1 = b / 255.0
 
-	" Cannot re-use r1, g1, b1 because max() and min() operator on Numbers,
-	" not Floats.
-	let l:cmax = max([l:r, l:g, l:b]) / 255.0
-	let l:cmin = min([l:r, l:g, l:b]) / 255.0
-	let l:cdelta = (l:cmax - l:cmin)
+	# Cannot re-use r1, g1, b1 because max() and min() operator on Numbers,
+	# not Floats.
+	var cmax = max([r, g, b]) / 255.0
+	var cmin = min([r, g, b]) / 255.0
+	var cdelta = (cmax - cmin)
 
-	if l:cdelta == 0.0
-		let l:hue = 0
-	elseif l:cmax == l:r1
-		let l:hue = float2nr(((l:g1 - l:b1) / l:cdelta) * 60.0)
-	elseif l:cmax == l:g1
-		let l:hue = float2nr((((l:b1 - l:r1) / l:cdelta) + 2.0) * 60)
-	elseif l:cmax == l:b1
-		let l:hue = float2nr((((l:r1 - l:g1) / l:cdelta) + 4.0) * 60)
+    var hue = 0
+	if cdelta == 0.0
+		hue = 0
+	elseif cmax == r1
+		hue = float2nr(((g1 - b1) / cdelta) * 60.0)
+	elseif cmax == g1
+		hue = float2nr((((b1 - r1) / cdelta) + 2.0) * 60)
+	elseif cmax == b1
+		hue = float2nr((((r1 - g1) / cdelta) + 4.0) * 60)
 	else
 		message "logic has failed us all"
 	endif
 
-	let l:lightness = (l:cmax + l:cmin) / 2.0
+	var lightness = (cmax + cmin) / 2.0
 
-	if l:cdelta == 0
-		let l:saturation = 0
+    var saturation = 0.0
+	if cdelta == 0.0
+		saturation = 0.0
 	else
-		let l:saturation = l:cdelta / (1 - abs(2 * l:lightness - 1))
+		saturation = cdelta / (1 - abs(2 * lightness - 1))
 	endif
 
-	return [l:hue, l:saturation, l:lightness]
-endfunction
+	return [hue, saturation, lightness]
+enddef
 
-function! s:HSL_to_RGB(hsl)
-	let l:C = (1 - abs(2 * a:hsl[s:LIT] - 1)) * a:hsl[s:SAT]
-	let l:h1 = s:DivMod(a:hsl[s:HUE] / 60.0, 2)[1]
-	let l:X = l:C * (1.0 - abs(l:h1 - 1.0))
-	let l:m = a:hsl[s:LIT] - (C / 2)
-	if a:hsl[s:HUE] >= 360
+def HSL_to_RGB(hsl: list<any>): list<any>
+	var C = 1.0 * (1 - abs(2 * hsl[LIT] - 1)) * hsl[SAT]
+	var h1 = DivMod(hsl[HUE] / 60.0, 2.0)[1]
+	var X = C * (1.0 - abs(h1 - 1.0))
+	var m = hsl[LIT] - (C / 2.0)
+    var r1 = 0.0
+    var g1 = 0.0
+    var b1 = 0.0
+	if hsl[HUE] >= 360
 		echo "logic has failed us all"
-		echo a:hsl
-	elseif a:hsl[s:HUE] >= 300
-		let l:r1 = l:C
-		let l:g1 = 0
-		let l:b1 = l:X
-	elseif a:hsl[s:HUE] >= 240
-		let l:r1 = l:X
-		let l:g1 = 0
-		let l:b1 = l:C
-	elseif a:hsl[s:HUE] >= 180
-		let l:r1 = 0
-		let l:g1 = l:X
-		let l:b1 = l:C
-	elseif a:hsl[s:HUE] >= 120
-		let l:r1 = 0
-		let l:g1 = l:C
-		let l:b1 = l:X
-	elseif a:hsl[s:HUE] >= 60
-		let l:r1 = l:X
-		let l:g1 = l:C
-		let l:b1 = 0
+		echo hsl
+	elseif hsl[HUE] >= 300
+		r1 = C
+		g1 = 0.0
+		b1 = X
+	elseif hsl[HUE] >= 240
+		r1 = X
+		g1 = 0.0
+		b1 = C
+	elseif hsl[HUE] >= 180
+		r1 = 0.0
+		g1 = X
+		b1 = C
+	elseif hsl[HUE] >= 120
+		r1 = 0.0
+		g1 = C
+		b1 = X
+	elseif hsl[HUE] >= 60
+		r1 = X
+		g1 = C
+		b1 = 0.0
 	else
-		let l:r1 = l:C
-		let l:g1 = l:X
-		let l:b1 = 0
+		r1 = C
+		g1 = X
+		b1 = 0.0
 	endif
 
-	let l:r = (l:r1 + l:m) * 255
-	let l:g = (l:g1 + l:m) * 255
-	let l:b = (l:b1 + l:m) * 255
+	var r = (r1 + m) * 255
+	var g = (g1 + m) * 255
+	var b = (b1 + m) * 255
 
-	return [l:r, l:g, l:b]
-endfunction
+	return [r, g, b]
+enddef
 
-function! s:HSL_to_HexRGB(hsl)
-	let l:rgb = s:HSL_to_RGB(a:hsl)
-	return printf("#%02x%02x%02x", float2nr(l:rgb[0]), float2nr(l:rgb[1]), float2nr(l:rgb[2]))
-endfunction
+def HSL_to_HexRGB(hsl: list<any>): string
+	var rgb = HSL_to_RGB(hsl)
+	return printf("#%02x%02x%02x", float2nr(rgb[0]), float2nr(rgb[1]), float2nr(rgb[2]))
+enddef
 
-function! s:TetradicSelfTest()
-	let l:hsl = s:HexRGB_to_HSL("#000000")
-	call assert_equal(l:hsl[0], 0)
-	call assert_equal(l:hsl[1], 0)
-	call assert_equal(l:hsl[2], 0)
+def TetradicSelfTest(): void
+	var hsl = HexRGB_to_HSL("#000000")
+	assert_equal(hsl[0], 0)
+	assert_equal(hsl[1], 0)
+	assert_equal(hsl[2], 0)
 
-	let l:hex_rgb = s:HSL_to_HexRGB([0, 0, 0])
-	call assert_equal(l:hex_rgb, "#000000")
+	var hex_rgb = HSL_to_HexRGB([0, 0, 0])
+	assert_equal(hex_rgb, "#000000")
 
-	let l:hsl = s:HexRGB_to_HSL("#FFFFFF")
-	call assert_equal(l:hsl[0], 0)
-	call assert_equal(l:hsl[1], 0)
-	call assert_equal(l:hsl[2], 100)
+	hsl = HexRGB_to_HSL("#FFFFFF")
+	assert_equal(hsl[0], 0)
+	assert_equal(hsl[1], 0)
+	assert_equal(hsl[2], 100)
 
-	let l:hex_rgb = s:HSL_to_HexRGB([0, 0, 100])
-	call assert_equal(l:hex_rgb, "#FFFFFF")
+	hex_rgb = HSL_to_HexRGB([0, 0, 100])
+	assert_equal(hex_rgb, "#FFFFFF")
 
-	let l:hsl = s:HexRGB_to_HSL("#FF0000")
-	call assert_equal(l:hsl[0], 0)
-	call assert_equal(l:hsl[1], 100)
-	call assert_equal(l:hsl[2], 50)
+	hsl = HexRGB_to_HSL("#FF0000")
+	assert_equal(hsl[0], 0)
+	assert_equal(hsl[1], 100)
+	assert_equal(hsl[2], 50)
 
-	let l:hex_rgb = s:HSL_to_HexRGB([0, 100, 50])
-	call assert_equal(l:hex_rgb, "#FF0000")
+	hex_rgb = HSL_to_HexRGB([0, 100, 50])
+	assert_equal(hex_rgb, "#FF0000")
 
-	let l:hsl = s:HexRGB_to_HSL("#BFBFBF")
-	call assert_equal(l:hsl[0], 0)
-	call assert_equal(l:hsl[1], 0)
-	call assert_equal(l:hsl[2], 75)
+	hsl = HexRGB_to_HSL("#BFBFBF")
+	assert_equal(hsl[0], 0)
+	assert_equal(hsl[1], 0)
+	assert_equal(hsl[2], 75)
 
-	let l:hex_rgb = s:HSL_to_HexRGB([0, 0, 75])
-	call assert_equal(l:hex_rgb, "#BFBFBF")
+	hex_rgb = HSL_to_HexRGB([0, 0, 75])
+	assert_equal(hex_rgb, "#BFBFBF")
 
-	let l:hsl = s:HexRGB_to_HSL("#800080")
-	call assert_equal(l:hsl[0], 300)
-	call assert_equal(l:hsl[1], 100)
-	call assert_equal(l:hsl[2], 25)
+	hsl = HexRGB_to_HSL("#800080")
+	assert_equal(hsl[0], 300)
+	assert_equal(hsl[1], 100)
+	assert_equal(hsl[2], 25)
 
-	let l:hex_rgb = s:HSL_to_HexRGB([300, 100, 25])
-	call assert_equal(l:hex_rgb, "#800080")
+	hex_rgb = HSL_to_HexRGB([300, 100, 25])
+	assert_equal(hex_rgb, "#800080")
 
-	let l:hsl = s:HexRGB_to_HSL("#E35C0F")
-	call assert_equal(l:hsl[0], 74)
-	call assert_equal(l:hsl[1], 79)
-	call assert_equal(l:hsl[2], 53)
+	hsl = HexRGB_to_HSL("#E35C0F")
+	assert_equal(hsl[0], 74)
+	assert_equal(hsl[1], 79)
+	assert_equal(hsl[2], 53)
 
-	let l:hex_rgb = s:HSL_to_HexRGB([74, 79, 53])
-	call assert_equal(l:hex_rgb, "#E35C0F")
-endfunction
+	hex_rgb = HSL_to_HexRGB([74, 79, 53])
+	assert_equal(hex_rgb, "#E35C0F")
+enddef
 
-call s:TetradicSelfTest()
+TetradicSelfTest()
 
-let s:base_hsl = g:tetradic_base
+var base_hsl = g:tetradic_base
 
-let s:names = ["base", "secondary", "comp", "comp_secondary"]
-let s:lightness_vals = { 'shade': 0.33, 'pure': 0.5, 'tint': 0.84 }
-let s:hue_increments = [0, 35, 180, 215]
-let s:hue_vals = map(s:hue_increments, {idx, val -> abs(s:DivMod(s:base_hsl[s:HUE] + val, 360)[1]) })
-let s:saturation_vals = [0.33, 0.66, 0.82, 0.98]
+var names = ["base", "secondary", "comp", "comp_secondary"]
+var lightness_vals = { 'shade': 0.33, 'pure': 0.5, 'tint': 0.84 }
+var hue_increments = [0.0, 35.0, 180.0, 215.0]
+var hue_vals = map(hue_increments, (idx, val) => abs(DivMod(base_hsl[HUE] + val, 360.0)[1]))
+var saturation_vals = [0.33, 0.66, 0.82, 0.98]
 
-function! s:EnumerateList(lst)
-	return map(copy(a:lst), {idx, val -> [idx, val]})
-endfunction
+def EnumerateList(lst: list<any>): list<any>
+	return map(copy(lst), (idx, val) => [idx, val])
+enddef
 
-for [h_idx, hue] in s:EnumerateList(s:hue_vals)
-	for [l_name, lit] in items(s:lightness_vals)
-		for [s_idx, sat] in s:EnumerateList(s:saturation_vals)
-			let s:col_name = "tetradic_" . s:names[h_idx] . (s_idx + 1) . "_" . l_name
-			let s:hsl = [hue, sat, lit]
-			let v:colornames[s:col_name] = s:HSL_to_HexRGB(s:hsl)
+for [h_idx, hue] in EnumerateList(hue_vals)
+	for [l_name, lit] in items(lightness_vals)
+		for [s_idx, sat] in EnumerateList(saturation_vals)
+			var col_name = "tetradic_" .. names[h_idx] .. (s_idx + 1) .. "_" .. l_name
+			var hsl = [hue, sat, lit]
+			v:colornames[col_name] = HSL_to_HexRGB(hsl)
 		endfor
 	endfor
 endfor
 
-" For gray, since saturation is meaningless but we want 4 different values, we
-" pretend the saturation steps are lightness steps.
-for [l_idx, lit] in s:EnumerateList(s:saturation_vals)
-	let s:col_name = "tetradic_gray" . (l_idx + 1)
-	let s:hsl = [0, 0, lit]
-	let v:colornames[s:col_name] = s:HSL_to_HexRGB(s:hsl)
+# For gray, since saturation is meaningless but we want 4 different values, we
+# pretend the saturation steps are lightness steps.
+for [l_idx, lit] in EnumerateList(saturation_vals)
+	var col_name = "tetradic_gray" .. (l_idx + 1)
+	var hsl = [0, 0, lit]
+	v:colornames[col_name] = HSL_to_HexRGB(hsl)
 endfor
+
+defcompile
 
